@@ -1,9 +1,9 @@
 import telebot
 from telebot import types
 
-bot = telebot.TeleBot('7190036484:AAG1KC_QhMtZLDPopV3gW6ELKpvFlhrcvGo')
+from Nura import nura_start
 
-hello_text = ''
+bot = telebot.TeleBot('7190036484:AAG1KC_QhMtZLDPopV3gW6ELKpvFlhrcvGo')
 
 
 @bot.message_handler(commands=['start'])
@@ -18,6 +18,16 @@ def start(message):
                      f'\n🥩 В шашлычной у Ашота - викторина о шашлыке '
                      f'\n⚽️ Игры на выживание - идеи для отдыха',
                      parse_mode='html', reply_markup=marcup)
+    bot.register_next_step_handler(message, on_click)
+
+
+def on_click(message):
+    if message.text == 'В гостях у Бабы Нюры':
+        nura_start(message)
+    elif message.text == 'В шашлычной у Ашота':
+        pass
+    elif message.text == 'Игры на выживание':
+        pass
 
 
 bot.polling(none_stop=True)
