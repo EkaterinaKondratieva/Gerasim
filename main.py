@@ -1,11 +1,56 @@
+import sqlite3
+
 import telebot
 from telebot import types
 
 bot = telebot.TeleBot('7190036484:AAG1KC_QhMtZLDPopV3gW6ELKpvFlhrcvGo')
+about_user = []
 
 
 @bot.message_handler(commands=['start'])
 def start(message):
+    murcup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
+    murcup.add(types.KeyboardButton('Зарегистрироваться'))
+    murcup.add(types.KeyboardButton('Войти'))
+    bot.send_message(message.chat.id, 'Чтобы воспользоваться помощью Герасима нужно зарегистрироваться или войти',
+                     reply_markup=murcup)
+
+
+@bot.message_handler(content_types=['text'])
+def form(message):
+    if message.text == 'Зарегистрироваться':
+        bot.send_message(message.chat.id, 'Введите логин')
+        bot.register_next_step_handler(message, user_name)
+
+
+def user_name(message):
+    login = message.text
+    con = sqlite3.connect('bd.sql')
+    cur = con.cursor()
+    users = [elem[0] for elem in cur.execute('''SELECT login FROM Users''').fetchall()]
+    if login not in users:
+        about_user.append(login)
+        bot.send_message(message.chat.id, f'Введите пароль')
+        bot.register_next_step_handler(message, user_password)
+    else:
+        bot.send_message(message.chat.id, f'К сожалению, такой пользователь уже есть(\nПридумайте другой логин')
+        bot.register_next_step_handler(message, user_name)
+
+
+def user_password(message):
+    password = message.text
+    con = sqlite3.connect('bd.sql')
+    cur = con.cursor()
+    cur.execute('''INSERT INTO Users (login, password, points) VALUES (?, ?, ?)''', (about_user[0], password, 0))
+    con.commit()
+    murcup = types.ReplyKeyboardMarkup()
+    murcup.add(types.KeyboardButton('Ура🎉'))
+    bot.send_message(message.chat.id, f'Вы зарегистрированны в сети\n'
+                                      f'Теперь Герасим готов вам помочь!', reply_markup=murcup)
+    bot.register_next_step_handler(message, help_g)
+
+
+def help_g(message):
     marcup = types.ReplyKeyboardMarkup()
     marcup.add(types.KeyboardButton('В гостях у Бабы Нюры'))
     marcup.add(types.KeyboardButton('В шашлычной у Ашота'))
@@ -21,7 +66,7 @@ def start(message):
 
 def on_click(message):
     if message.text == 'В гостях у Бабы Нюры':
-        Nura.start_nura(message)
+        start_nura(message)
     elif message.text == 'В шашлычной у Ашота':
         pass
     elif message.text == 'Игры на выживание':
