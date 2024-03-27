@@ -21,6 +21,9 @@ def form(message):
     if message.text == 'Зарегистрироваться':
         bot.send_message(message.chat.id, 'Введите логин')
         bot.register_next_step_handler(message, user_name)
+    elif message.text == 'Войти' or message.text == 'Попробовать еще раз':
+        bot.send_message(message.chat.id, 'Введите логин')
+        bot.register_next_step_handler(message, check_name)
 
 
 def user_name(message):
@@ -50,8 +53,57 @@ def user_password(message):
     bot.register_next_step_handler(message, help_g)
 
 
+def check_name(message):
+    global about_user
+    login = message.text
+    about_user.append(login)
+    con = sqlite3.connect('bd.sql')
+    cur = con.cursor()
+    users = [elem[0] for elem in cur.execute('''SELECT login FROM Users''').fetchall()]
+    if login in users:
+        bot.send_message(message.chat.id, 'Введите пароль')
+        bot.register_next_step_handler(message, check_password)
+    else:
+        mupcup = types.InlineKeyboardMarkup()
+        btn1 = types.InlineKeyboardButton('Зарегистрироваться', callback_data='login')
+        btn2 = types.InlineKeyboardButton('Попробовать еще раз', callback_data='repeat')
+        mupcup.row(btn1, btn2)
+        about_user = []
+        bot.send_message(message.chat.id,
+                         "Такого пользователя нет\nЗарегистрируйтесь в сиситеме или введите логин еще раз",
+                         reply_markup=mupcup)
+
+
+@bot.callback_query_handler(func=lambda callback: True)
+def callback_message(callback):
+    if callback.data == 'login':
+        bot.send_message(callback.message.chat.id, 'Введите логин')
+        bot.register_next_step_handler(callback.message, user_name)
+    elif callback.data == 'repeat':
+        bot.send_message(callback.message.chat.id, 'Введите логин')
+        bot.register_next_step_handler(callback.message, check_name)
+
+
+def check_password(message):
+    password = message.text
+    con = sqlite3.connect('bd.sql')
+    cur = con.cursor()
+    info = {}
+    users = [(elem[1], elem[2]) for elem in cur.execute('''SELECT * FROM Users''').fetchall()]
+    for elem in users:
+        info[elem[0]] = elem[1]
+    if info[about_user[0]] == password:
+        murcup = types.ReplyKeyboardMarkup()
+        murcup.add(types.KeyboardButton('Ура🎉'))
+        bot.send_message(message.chat.id, f'Мы нашли вас в системе\nГерасим готов вам помочь', reply_markup=murcup)
+        bot.register_next_step_handler(message, help_g)
+    else:
+        bot.send_message(message.chat.id, f'Попробуйте ввести свой пароль еще раз')
+        bot.register_next_step_handler(message, check_password)
+
+
 def help_g(message):
-    marcup = types.ReplyKeyboardMarkup()
+    marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
     marcup.add(types.KeyboardButton('В гостях у Бабы Нюры'))
     marcup.add(types.KeyboardButton('В шашлычной у Ашота'))
     marcup.add(types.KeyboardButton('Игры на выживание'))
