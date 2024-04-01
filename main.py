@@ -5,6 +5,13 @@ from telebot import types
 
 bot = telebot.TeleBot('7190036484:AAG1KC_QhMtZLDPopV3gW6ELKpvFlhrcvGo')
 about_user = []
+about_seed = []
+SEEDS = {'tomatoes': 'Помидоры', 'cucumbers': "Огурцы",
+         'peppers': "Болгарские перцы",
+         'zucchini': "Кабачки",
+         'carrot': "Морковь",
+         'strawberry': "Клубника"
+         }
 
 
 @bot.message_handler(commands=['start'])
@@ -82,6 +89,28 @@ def callback_message(callback):
     elif callback.data == 'repeat':
         bot.send_message(callback.message.chat.id, 'Введите логин')
         bot.register_next_step_handler(callback.message, check_name)
+    else:
+        con = sqlite3.connect('bd.sql')
+        cur = con.cursor()
+        sort_of_seed = SEEDS[callback.data]
+        about_seed_temp = cur.execute('''SELECT Information FROM Seeds WHERE Name = ?''', (sort_of_seed,)).fetchone()[
+            0].split('-')
+        best_temp = []
+        for temp in range(int(about_seed_temp[0]), int(about_seed_temp[1]) + 1):
+            best_temp.append(temp)
+
+        marcup = types.ReplyKeyboardMarkup()
+        marcup.add(types.KeyboardButton("Отправить местоположение", request_location=True))
+        marcup.add(types.KeyboardButton('Посмотреть советы'))
+
+        about_seed.append(callback.data)
+        about_seed.append(sort_of_seed)
+        about_seed.append(best_temp)
+
+        bot.send_message(callback.message.chat.id,
+                         'Дружок, чтобы моя помощь была максимальной, мне нужно узнать твою геолокацию',
+                         reply_markup=marcup)
+        bot.register_next_step_handler(callback.message, help_nura)
 
 
 def check_password(message):
@@ -103,7 +132,7 @@ def check_password(message):
 
 
 def help_g(message):
-    marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
+    marcup = types.ReplyKeyboardMarkup()
     marcup.add(types.KeyboardButton('В гостях у Бабы Нюры'))
     marcup.add(types.KeyboardButton('В шашлычной у Ашота'))
     marcup.add(types.KeyboardButton('Игры на выживание'))
@@ -133,15 +162,20 @@ def start_nura(message):
     btn4 = types.InlineKeyboardButton('Кабачки', callback_data='zucchini')
     btn5 = types.InlineKeyboardButton('Морковь', callback_data='carrot')
     btn6 = types.InlineKeyboardButton('Клубника', callback_data='strawberry')
-    btn7 = types.InlineKeyboardButton('Назад', callback_data='return')
     mupcup.row(btn1, btn2)
     mupcup.row(btn3, btn4)
     mupcup.row(btn5, btn6)
-    mupcup.row(btn7)
     bot.send_message(message.chat.id, 'Привет, внучок! \n'
                                       'Меня зовут Баба Нюра и я знаю все о помидорках и клубнике!\n'
                                       'Если тебе нужна моя помощь, то просто выбирай нужную культуру',
                      reply_markup=mupcup)
+
+
+def help_nura(message):
+    if message.text == 'Посмотреть советы':
+        bot.send_photo(message.chat.id, photo=open(f'vegetables/{about_seed[0]}.jpeg', 'rb'))
+    else:
+        bot.send_message(message.chat.id, message)
 
 
 bot.polling(none_stop=True)
