@@ -1,7 +1,9 @@
+import json
 import sqlite3
-
 import telebot
 from telebot import types
+import datetime as dt
+import requests
 
 bot = telebot.TeleBot('7190036484:AAG1KC_QhMtZLDPopV3gW6ELKpvFlhrcvGo')
 about_user = []
@@ -12,6 +14,8 @@ SEEDS = {'tomatoes': 'Помидоры', 'cucumbers': "Огурцы",
          'carrot': "Морковь",
          'strawberry': "Клубника"
          }
+BASE_URL = 'https://api.openweathermap.org/data/2.5/forecast?'
+API_KEY = 'a7cd0d9a75754013bea6553cc27adc54'
 
 
 @bot.message_handler(commands=['start'])
@@ -83,6 +87,7 @@ def check_name(message):
 
 @bot.callback_query_handler(func=lambda callback: True)
 def callback_message(callback):
+    global about_seed
     if callback.data == 'login':
         bot.send_message(callback.message.chat.id, 'Введите логин')
         bot.register_next_step_handler(callback.message, user_name)
@@ -95,17 +100,16 @@ def callback_message(callback):
         sort_of_seed = SEEDS[callback.data]
         about_seed_temp = cur.execute('''SELECT Information FROM Seeds WHERE Name = ?''', (sort_of_seed,)).fetchone()[
             0].split('-')
-        best_temp = []
-        for temp in range(int(about_seed_temp[0]), int(about_seed_temp[1]) + 1):
-            best_temp.append(temp)
-
-        marcup = types.ReplyKeyboardMarkup()
-        marcup.add(types.KeyboardButton("Отправить местоположение", request_location=True))
-        marcup.add(types.KeyboardButton('Посмотреть советы'))
-
+        best_temp = [int(about_seed_temp[0]), int(about_seed_temp[-1])]
+        # СПРОСИТЬ ПОЧЕМУ ЗАДВАИВАЮТСЯ СООБЩЕНИЯ, ЕСЛИ МЕНЯТЬ ВЫБОР НЕ ДОЖИДАЯСЬ ОТВЕТА
+        about_seed = []
         about_seed.append(callback.data)
         about_seed.append(sort_of_seed)
         about_seed.append(best_temp)
+
+        marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
+        marcup.add(types.KeyboardButton("Отправить местоположение", request_location=True))
+        marcup.add(types.KeyboardButton('Посмотреть советы'))
 
         bot.send_message(callback.message.chat.id,
                          'Дружок, чтобы моя помощь была максимальной, мне нужно узнать твою геолокацию',
@@ -132,7 +136,7 @@ def check_password(message):
 
 
 def help_g(message):
-    marcup = types.ReplyKeyboardMarkup()
+    marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
     marcup.add(types.KeyboardButton('В гостях у Бабы Нюры'))
     marcup.add(types.KeyboardButton('В шашлычной у Ашота'))
     marcup.add(types.KeyboardButton('Игры на выживание'))
@@ -175,7 +179,29 @@ def help_nura(message):
     if message.text == 'Посмотреть советы':
         bot.send_photo(message.chat.id, photo=open(f'vegetables/{about_seed[0]}.jpeg', 'rb'))
     else:
-        bot.send_message(message.chat.id, message)
+        lat = message.location.latitude
+        lon = message.location.longitude
+        url = BASE_URL + 'lat=' + str(lat) + '&lon=' + str(lon) + '&appid=' + API_KEY + '&units=metric' + '&cnt=5'
+        response = requests.get(url).json()
+        now_temp = 0
+        ok = True
+        for i in range(5):
+            if response['list'][i]['main']['temp'] > 15:
+                now_temp += response['list'][i]['main']['temp']
+            else:
+                ok = False
+                break
+        if ok:
+            now_temp /= 5
+            if about_seed[-1][0] <= now_temp <= about_seed[-1][-1]:
+                bot.send_message(message.chat.id,
+                                 f'{now_temp} - хорошая погода, чтобы посадить {about_seed[1].lower()}')
+            else:
+                bot.send_message(message.chat.id, f'Нужно подождать, чтобы посадить {about_seed[1].lower()}')
+        else:
+            bot.send_message(message.chat.id, f'Нужно подождать, чтобы посадить {about_seed[1].lower()}')
+        bot.send_message(message.chat.id, 'Вот несколько рекомендаций для посадки')
+        bot.send_photo(message.chat.id, photo=open(f'vegetables/{about_seed[0]}.jpeg', 'rb'))
 
 
 bot.polling(none_stop=True)
