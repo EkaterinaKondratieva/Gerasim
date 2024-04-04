@@ -2,10 +2,11 @@ import json
 import sqlite3
 import telebot
 from telebot import types
-import datetime as dt
+import pymorphy2
 import requests
 
 bot = telebot.TeleBot('7190036484:AAG1KC_QhMtZLDPopV3gW6ELKpvFlhrcvGo')
+morph = pymorphy2.MorphAnalyzer()
 about_user = []
 about_seed = []
 SEEDS = {'tomatoes': 'Помидоры',
@@ -201,15 +202,16 @@ def help_nura(message):
             else:
                 ok = False
                 break
+        seed = morph.parse(about_seed[1].lower())[0].inflect({"accs"}).word
         if ok:
             now_temp /= 5
             if about_seed[-1][0] <= now_temp <= about_seed[-1][-1]:
                 bot.send_message(message.chat.id,
-                                 f'{now_temp} - хорошая погода, чтобы посадить {about_seed[1].lower()}')
+                                 f'{now_temp} - хорошая погода, чтобы посадить {seed}')
             else:
-                bot.send_message(message.chat.id, f'Нужно подождать, чтобы посадить {about_seed[1].lower()}')
+                bot.send_message(message.chat.id, f'Нужно подождать, чтобы посадить {seed}')
         else:
-            bot.send_message(message.chat.id, f'Нужно подождать, чтобы посадить {about_seed[1].lower()}')
+            bot.send_message(message.chat.id, f'Нужно подождать, чтобы посадить {seed}')
         bot.send_message(message.chat.id, 'Вот несколько рекомендаций для посадки')
         bot.send_photo(message.chat.id, photo=open(f'vegetables/{about_seed[0]}.jpeg', 'rb'))
 
