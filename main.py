@@ -8,7 +8,8 @@ import requests
 bot = telebot.TeleBot('7190036484:AAG1KC_QhMtZLDPopV3gW6ELKpvFlhrcvGo')
 about_user = []
 about_seed = []
-SEEDS = {'tomatoes': 'Помидоры', 'cucumbers': "Огурцы",
+SEEDS = {'tomatoes': 'Помидоры',
+         'cucumbers': "Огурцы",
          'peppers': "Болгарские перцы",
          'zucchini': "Кабачки",
          'carrot': "Морковь",
@@ -94,6 +95,13 @@ def callback_message(callback):
     elif callback.data == 'repeat':
         bot.send_message(callback.message.chat.id, 'Введите логин')
         bot.register_next_step_handler(callback.message, check_name)
+    elif callback.data == 'return':
+        marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
+        marcup.add(types.KeyboardButton('В гостях у Бабы Нюры'))
+        marcup.add(types.KeyboardButton('В шашлычной у Ашота'))
+        marcup.add(types.KeyboardButton('Игры на выживание'))
+        bot.send_message(callback.message.chat.id, 'С возвразщением', reply_markup=marcup)
+        bot.register_next_step_handler(callback.message, on_click)
     else:
         con = sqlite3.connect('bd.sql')
         cur = con.cursor()
@@ -108,7 +116,7 @@ def callback_message(callback):
         about_seed.append(best_temp)
 
         marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
-        marcup.add(types.KeyboardButton("Отправить местоположение", request_location=True))
+        marcup.add(types.KeyboardButton("Отправить местоположение📍", request_location=True))
         marcup.add(types.KeyboardButton('Посмотреть советы'))
 
         bot.send_message(callback.message.chat.id,
@@ -153,22 +161,24 @@ def on_click(message):
     if message.text == 'В гостях у Бабы Нюры':
         start_nura(message)
     elif message.text == 'В шашлычной у Ашота':
-        pass
+        bot.send_message(message.chat.id, 'Вай')
     elif message.text == 'Игры на выживание':
         pass
 
 
 def start_nura(message):
     mupcup = types.InlineKeyboardMarkup()
-    btn1 = types.InlineKeyboardButton('Помидоры', callback_data='tomatoes')
-    btn2 = types.InlineKeyboardButton('Огурцы', callback_data='cucumbers')
-    btn3 = types.InlineKeyboardButton('Перцы', callback_data='peppers')
-    btn4 = types.InlineKeyboardButton('Кабачки', callback_data='zucchini')
-    btn5 = types.InlineKeyboardButton('Морковь', callback_data='carrot')
-    btn6 = types.InlineKeyboardButton('Клубника', callback_data='strawberry')
+    btn1 = types.InlineKeyboardButton('Помидоры🍅', callback_data='tomatoes')
+    btn2 = types.InlineKeyboardButton('Огурцы🥒', callback_data='cucumbers')
+    btn3 = types.InlineKeyboardButton('Перцы🫑', callback_data='peppers')
+    btn4 = types.InlineKeyboardButton('Кабачки🤮', callback_data='zucchini')
+    btn5 = types.InlineKeyboardButton('Морковь🥕', callback_data='carrot')
+    btn6 = types.InlineKeyboardButton('Клубника🍓', callback_data='strawberry')
+    btn7 = types.InlineKeyboardButton('Назад', callback_data='return')
     mupcup.row(btn1, btn2)
     mupcup.row(btn3, btn4)
     mupcup.row(btn5, btn6)
+    mupcup.add(btn7)
     bot.send_message(message.chat.id, 'Привет, внучок! \n'
                                       'Меня зовут Баба Нюра и я знаю все о помидорках и клубнике!\n'
                                       'Если тебе нужна моя помощь, то просто выбирай нужную культуру',
