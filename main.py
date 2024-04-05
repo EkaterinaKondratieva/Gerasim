@@ -4,18 +4,11 @@ import telebot
 from telebot import types
 import pymorphy2
 import requests
-
+from seeds import SEEDS
 bot = telebot.TeleBot('7190036484:AAG1KC_QhMtZLDPopV3gW6ELKpvFlhrcvGo')
 morph = pymorphy2.MorphAnalyzer()
 about_user = []
 about_seed = []
-SEEDS = {'tomatoes': 'Помидоры',
-         'cucumbers': "Огурцы",
-         'peppers': "Болгарские перцы",
-         'zucchini': "Кабачки",
-         'carrot': "Морковь",
-         'strawberry': "Клубника"
-         }
 BASE_URL = 'https://api.openweathermap.org/data/2.5/forecast?'
 API_KEY = 'a7cd0d9a75754013bea6553cc27adc54'
 
@@ -106,7 +99,7 @@ def callback_message(callback):
     else:
         con = sqlite3.connect('bd.sql')
         cur = con.cursor()
-        sort_of_seed = SEEDS[callback.data]
+        sort_of_seed = SEEDS[callback.data][0]
         about_seed_temp = cur.execute('''SELECT Information FROM Seeds WHERE Name = ?''', (sort_of_seed,)).fetchone()[
             0].split('-')
         best_temp = [int(about_seed_temp[0]), int(about_seed_temp[-1])]
@@ -214,6 +207,11 @@ def help_nura(message):
             bot.send_message(message.chat.id, f'Нужно подождать, чтобы посадить {seed}')
         bot.send_message(message.chat.id, 'Вот несколько рекомендаций для посадки')
         bot.send_photo(message.chat.id, photo=open(f'vegetables/{about_seed[0]}.jpeg', 'rb'))
+    mupcup = types.InlineKeyboardMarkup()
+    mupcup.add(types.InlineKeyboardButton(f'{SEEDS[about_seed[0]][1][0][0]}', url=SEEDS[about_seed[0]][1][0][1]))
+    mupcup.add(types.InlineKeyboardButton(f'{SEEDS[about_seed[0]][1][1][0]}', url=SEEDS[about_seed[0]][1][1][1]))
+    mupcup.add(types.InlineKeyboardButton(f'{SEEDS[about_seed[0]][1][2][0]}', url=SEEDS[about_seed[0]][1][2][1]))
+    bot.send_message(message.chat.id, 'А это мои лучшие семена)', reply_markup=mupcup)
 
 
 bot.polling(none_stop=True)
