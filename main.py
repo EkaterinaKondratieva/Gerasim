@@ -221,7 +221,8 @@ def help_nura(message):
 
 def greeting(message):
     mupcup = types.InlineKeyboardMarkup()
-    bot.send_message(message.chat.id, 'Вай, кого я вижу! Мой сладкий пирожок захотел познать искусство'
+    bot.send_message(message.chat.id, 'Вай, кого я вижу! \n'
+                                      'Мой сладкий пирожок захотел познать искусство'
                                       ' приготовления идеального шашлыка? Давай посмотрим, сможешь ли ты создать такой'
                                       ' шедевр, поедая который гости не заметят, что съели собственные усы)',
                      reply_markup=mupcup)
