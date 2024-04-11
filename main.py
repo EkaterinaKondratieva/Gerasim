@@ -208,9 +208,9 @@ def help_nura(message):
         bot.send_message(message.chat.id, 'Вот несколько рекомендаций для посадки')
         bot.send_photo(message.chat.id, photo=open(f'vegetables/{about_seed[0]}.jpeg', 'rb'))
     mupcup = types.InlineKeyboardMarkup()
-    mupcup.add(types.InlineKeyboardButton(f'{SEEDS[about_seed[0]][1][0][0]}', url=SEEDS[about_seed[0]][1][0][1]))
-    mupcup.add(types.InlineKeyboardButton(f'{SEEDS[about_seed[0]][1][1][0]}', url=SEEDS[about_seed[0]][1][1][1]))
-    mupcup.add(types.InlineKeyboardButton(f'{SEEDS[about_seed[0]][1][2][0]}', url=SEEDS[about_seed[0]][1][2][1]))
+
+    for i in range(len(SEEDS[about_seed[0]][1])):
+        mupcup.add(types.InlineKeyboardButton(f'{SEEDS[about_seed[0]][1][i][0]}', url=SEEDS[about_seed[0]][1][i][1]))
     bot.send_message(message.chat.id, 'А это мои лучшие семена)', reply_markup=mupcup)
 
 
