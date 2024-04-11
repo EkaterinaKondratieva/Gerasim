@@ -5,6 +5,7 @@ from telebot import types
 import pymorphy2
 import requests
 from seeds import SEEDS
+
 bot = telebot.TeleBot('7190036484:AAG1KC_QhMtZLDPopV3gW6ELKpvFlhrcvGo')
 morph = pymorphy2.MorphAnalyzer()
 about_user = []
@@ -155,7 +156,7 @@ def on_click(message):
     if message.text == 'В гостях у Бабы Нюры':
         start_nura(message)
     elif message.text == 'В шашлычной у Ашота':
-        bot.send_message(message.chat.id, 'Вай')
+        greeting(message)
     elif message.text == 'Игры на выживание':
         pass
 
@@ -202,16 +203,28 @@ def help_nura(message):
                 bot.send_message(message.chat.id,
                                  f'{now_temp} - хорошая погода, чтобы посадить {seed}')
             else:
-                bot.send_message(message.chat.id, f'Нужно подождать, чтобы посадить {seed}')
+                bot.send_message(message.chat.id, f'Средняя температура на неделе - {now_temp}, недостаточно тепло.'
+                                                  f'Нужно подождать, чтобы посадить {seed}')
         else:
-            bot.send_message(message.chat.id, f'Нужно подождать, чтобы посадить {seed}')
-        bot.send_message(message.chat.id, 'Вот несколько рекомендаций для посадки')
+            bot.send_message(message.chat.id, f'На неделе ожидается низкая температура,'
+                                              f' нужно подождать, чтобы посадить {seed}')
+        bot.send_message(message.chat.id, 'Вот несколько рекомендаций для посадки:')
         bot.send_photo(message.chat.id, photo=open(f'vegetables/{about_seed[0]}.jpeg', 'rb'))
     mupcup = types.InlineKeyboardMarkup()
 
     for i in range(len(SEEDS[about_seed[0]][1])):
         mupcup.add(types.InlineKeyboardButton(f'{SEEDS[about_seed[0]][1][i][0]}', url=SEEDS[about_seed[0]][1][i][1]))
     bot.send_message(message.chat.id, 'А это мои лучшие семена)', reply_markup=mupcup)
+
+
+##ASHOT
+
+def greeting(message):
+    mupcup = types.InlineKeyboardMarkup()
+    bot.send_message(message.chat.id, 'Вай, кого я вижу! Мой сладкий пирожок захотел познать искусство'
+                                      ' приготовления идеального шашлыка? Давай посмотрим, сможешь ли ты создать такой'
+                                      ' шедевр, поедая который гости не заметят, что съели собственные усы)',
+                     reply_markup=mupcup)
 
 
 bot.polling(none_stop=True)
