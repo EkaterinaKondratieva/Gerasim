@@ -51,7 +51,10 @@ def callback_message(callback):
         marcup.add(types.KeyboardButton('Игры на выживание'))
         bot.send_message(callback.message.chat.id, 'С возвразщением', reply_markup=marcup)
         bot.register_next_step_handler(callback.message, on_click)
-    else:
+    if callback.data == 'return_to_list':
+        only_buttons(callback.message)
+    elif callback.data in ['tomatoes', 'cucumbers', 'peppers', 'zucchini', 'carrot', 'strawberry']:
+        bot.edit_message_reply_markup(callback.message.chat.id, callback.message.message_id)
         con = sqlite3.connect('bd.sql')
         cur = con.cursor()
         sort_of_seed = SEEDS[callback.data][0]
@@ -67,13 +70,28 @@ def callback_message(callback):
         marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
         marcup.add(types.KeyboardButton("Отправить местоположение📍", request_location=True))
         marcup.add(types.KeyboardButton('Посмотреть советы'))
-
+        marcup.add(types.KeyboardButton('Вернуться к списку'))
         bot.send_message(callback.message.chat.id,
                          'Дружок, чтобы моя помощь была максимальной, мне нужно узнать твою геолокацию',
                          reply_markup=marcup)
 
         bot.register_next_step_handler(callback.message, help_nura)
 
+def only_buttons(message):
+    mupcup = types.InlineKeyboardMarkup()
+    btn1 = types.InlineKeyboardButton('Помидоры🍅', callback_data='tomatoes')
+    btn2 = types.InlineKeyboardButton('Огурцы🥒', callback_data='cucumbers')
+    btn3 = types.InlineKeyboardButton('Перцы🫑', callback_data='peppers')
+    btn4 = types.InlineKeyboardButton('Кабачки🤮', callback_data='zucchini')
+    btn5 = types.InlineKeyboardButton('Морковь🥕', callback_data='carrot')
+    btn6 = types.InlineKeyboardButton('Клубника🍓', callback_data='strawberry')
+    btn7 = types.InlineKeyboardButton('Назад', callback_data='return')
+    mupcup.row(btn1, btn2)
+    mupcup.row(btn3, btn4)
+    mupcup.row(btn5, btn6)
+    mupcup.add(btn7)
+    bot.send_message(message.chat.id, 'А вот и список',
+                     reply_markup=mupcup)
 
 @bot.message_handler(commands=['nura'])
 def start_nura(message):
@@ -99,6 +117,16 @@ def start_nura(message):
 def help_nura(message):
     if message.text == 'Посмотреть советы':
         bot.send_photo(message.chat.id, photo=open(f'vegetables/{about_seed[0]}.jpeg', 'rb'))
+        mupcup = types.InlineKeyboardMarkup()
+        for i in range(len(SEEDS[about_seed[0]][1])):
+            mupcup.add(
+                types.InlineKeyboardButton(f'{SEEDS[about_seed[0]][1][i][0]}', url=SEEDS[about_seed[0]][1][i][1]))
+        mupcup.add(types.InlineKeyboardButton('Назад', callback_data='return'))
+        mupcup.add(types.InlineKeyboardButton('Вернуться к списку', callback_data='return_to_list'))
+        bot.send_message(message.chat.id, 'А это мои лучшие семена)', reply_markup=mupcup)
+    elif message.text == 'Вернуться к списку':
+        only_buttons(message)
+
     else:
         lat = message.location.latitude
         lon = message.location.longitude
@@ -126,11 +154,12 @@ def help_nura(message):
                                               f' нужно подождать, чтобы посадить {seed}')
         bot.send_message(message.chat.id, 'Вот несколько рекомендаций для посадки:')
         bot.send_photo(message.chat.id, photo=open(f'vegetables/{about_seed[0]}.jpeg', 'rb'))
-    mupcup = types.InlineKeyboardMarkup()
-
-    for i in range(len(SEEDS[about_seed[0]][1])):
-        mupcup.add(types.InlineKeyboardButton(f'{SEEDS[about_seed[0]][1][i][0]}', url=SEEDS[about_seed[0]][1][i][1]))
-    bot.send_message(message.chat.id, 'А это мои лучшие семена)', reply_markup=mupcup)
+        mupcup = types.InlineKeyboardMarkup()
+        for i in range(len(SEEDS[about_seed[0]][1])):
+            mupcup.add(types.InlineKeyboardButton(f'{SEEDS[about_seed[0]][1][i][0]}', url=SEEDS[about_seed[0]][1][i][1]))
+        mupcup.add(types.InlineKeyboardButton('Назад', callback_data='return'))
+        mupcup.add(types.InlineKeyboardButton('Вернуться к списку', callback_data='return_to_list'))
+        bot.send_message(message.chat.id, 'А это мои лучшие семена)', reply_markup=mupcup)
 
 
 ##ASHOT
