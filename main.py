@@ -51,8 +51,8 @@ def menu(message):
 @bot.callback_query_handler(func=lambda callback: True)
 def callback_message(callback):
     global about_seed
+    bot.edit_message_reply_markup(callback.message.chat.id, callback.message.message_id)
     if callback.data == 'return':
-        bot.edit_message_reply_markup(callback.message.chat.id, callback.message.message_id)
         marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
         marcup.add(types.KeyboardButton('В гостях у Бабы Нюры'))
         marcup.add(types.KeyboardButton('В шашлычной у Ашота'))
@@ -60,10 +60,8 @@ def callback_message(callback):
         bot.send_message(callback.message.chat.id, 'С возвразщением', reply_markup=marcup)
         bot.register_next_step_handler(callback.message, on_click)
     if callback.data == 'return_to_list':
-        bot.edit_message_reply_markup(callback.message.chat.id, callback.message.message_id)
         only_buttons(callback.message)
     elif callback.data in ['tomatoes', 'cucumbers', 'peppers', 'zucchini', 'carrot', 'strawberry']:
-        bot.edit_message_reply_markup(callback.message.chat.id, callback.message.message_id)
         con = sqlite3.connect('bd.sql')
         cur = con.cursor()
         sort_of_seed = SEEDS[callback.data][0]
@@ -82,9 +80,43 @@ def callback_message(callback):
                          'Дружок, чтобы моя помощь была максимальной, мне нужно узнать твою геолокацию',
                          reply_markup=marcup)
         bot.register_next_step_handler(callback.message, help_nura)
+    elif callback.data == 'return_to_games':
+        bot.send_message(callback.message.chat.id, 'С возвращением', reply_markup=create_buttuns_for_game())
+    elif callback.data == 'two' or callback.data == 'three and more' or callback.data == 'big company':
+        if callback.data == 'two':
+            n = 2
+        elif callback.data == 'three and more':
+            n = 3
+        elif callback.data == 'big company':
+            n = 7
+        marcup = types.InlineKeyboardMarkup()
+        marcup.add(types.InlineKeyboardButton('К начальному меню', callback_data='return'))
+        marcup.add(types.InlineKeyboardButton('Вернуться за помощью', callback_data='return_to_games'))
+        con = sqlite3.connect('bd.sql')
+        cur = con.cursor()
+        games_in_bd = cur.execute('''SELECT Game FROM Games WHERE number_of_people = ?''', (n,)).fetchall()
+        text = 'Вот в такие игры вы можете поиграть:'
+        if n == 2:
+            emoji = '⚽'
+        elif n == 3:
+            emoji = '🏀'
+        elif n == 7:
+            emoji = '🏐'
+        for i in range(len(games_in_bd)):
+            text += f'\n{emoji} {games_in_bd[i][0]}'
+        bot.send_message(callback.message.chat.id, text, reply_markup=marcup)
 
 
-def create_buttuns():
+def create_buttuns_for_game():
+    mupcup = types.InlineKeyboardMarkup()
+    mupcup.add(types.InlineKeyboardButton('2 человека', callback_data='two'))
+    mupcup.add(types.InlineKeyboardButton('3-6 человек', callback_data='three and more'))
+    mupcup.add(types.InlineKeyboardButton('Большая компания', callback_data='big company'))
+    mupcup.add(types.InlineKeyboardButton('К начальному меню', callback_data='return'))
+    return mupcup
+
+
+def create_buttuns_for_nura():
     mupcup = types.InlineKeyboardMarkup()
     btn1 = types.InlineKeyboardButton('Помидоры🍅', callback_data='tomatoes')
     btn2 = types.InlineKeyboardButton('Огурцы🥒', callback_data='cucumbers')
@@ -101,7 +133,7 @@ def create_buttuns():
 
 
 def only_buttons(message):
-    bot.send_message(message.chat.id, 'А вот и список', reply_markup=create_buttuns())
+    bot.send_message(message.chat.id, 'А вот и список', reply_markup=create_buttuns_for_nura())
 
 
 def answer(message):
@@ -121,7 +153,7 @@ def start_nura(message):
     bot.send_message(message.chat.id, 'Привет, внучок! \n'
                                       'Меня зовут Баба Нюра и я знаю все о помидорках и клубнике!\n'
                                       'Если тебе нужна моя помощь, то просто выбирай нужную культуру',
-                     reply_markup=create_buttuns())
+                     reply_markup=create_buttuns_for_nura())
 
 
 def help_nura(message):
@@ -172,13 +204,17 @@ def greeting(message):
                      reply_markup=mupcup)
 
 
-@bot.message_handler(commands=['games'])
 def games(message):
     mupcup = types.InlineKeyboardMarkup()
+    mupcup.add(types.InlineKeyboardButton('2 человека', callback_data='two'))
+    mupcup.add(types.InlineKeyboardButton('3-6 человек', callback_data='three and more'))
+    mupcup.add(types.InlineKeyboardButton('Большая компания', callback_data='big company'))
     mupcup.add(types.InlineKeyboardButton('К начальному меню', callback_data='return'))
-    bot.send_animation(message.chat.id, open('video/game.mp4', 'rb'), reply_markup=mupcup)
-    bot.send_message(message.chat.id, 'удаляем нижние кнопки, потом заменим на приветственный текст',
-                     reply_markup=types.ReplyKeyboardRemove())
+    bot.send_animation(message.chat.id, open('video/game.mp4', 'rb'), reply_markup=types.ReplyKeyboardRemove())
+    bot.send_message(message.chat.id, 'Привет👋\n'
+                                      'Этот раздел поможет тебе, если дни на даче проходят очень скучно\n'
+                                      'Выбирай количество людей в компании и узнай, чем скоротать время',
+                     reply_markup=mupcup)
 
 
 bot.polling(none_stop=True)
