@@ -54,7 +54,7 @@ def callback_message(callback):
     global about_seed
     global k
     bot.edit_message_reply_markup(callback.message.chat.id, callback.message.message_id)
-    if callback.data == 'return':
+    if callback.data == 'return' or callback.data == 'return no message':
         marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
         marcup.add(types.KeyboardButton('В гостях у Бабы Нюры'))
         marcup.add(types.KeyboardButton('В шашлычной у Ашота'))
@@ -109,12 +109,10 @@ def callback_message(callback):
         bot.send_message(callback.message.chat.id, text, reply_markup=marcup)
     elif callback.data == 'lets go':
         k = 0
-        bot.send_message(callback.message.chat.id, '', reply_markup=shashlik(callback.message, k))
-    elif callback.data == 'return no message':
-        bot.send_message(callback.message.chat.id, '', reply_markup=shashlik(callback.message, k))
+        shashlik(callback.message, k)
     elif callback.data == 'forward':
         k += 1
-        bot.send_message(callback.message.chat.id, '', reply_markup=shashlik(callback.message, k))
+        shashlik(callback.message, k)
 
 
 def create_buttons_for_game():
@@ -253,10 +251,9 @@ def shashlik(message, k):
 
         bot.send_message(message.chat.id, 'Вайя, какое рвение к победе! Заводим мою ниву и едем дальше?',
                          reply_markup=mupcup)
-    elif k == 5:
+    elif k == 4:
         bot.send_message(message.chat.id, 'Это конец, моя маковая росинка! До встречи в моей шашлычной, пусть все твои '
                                           'шашлыки будут вкуснее, чем у соседей!')
-
 
 
 # GAMES
