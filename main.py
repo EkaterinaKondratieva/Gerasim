@@ -257,9 +257,9 @@ def shashlik(message, k):
         bot.send_message(message.chat.id, 'Это конец, моя маковая росинка! До встречи в моей шашлычной, пусть все твои '
                                           'шашлыки будут вкуснее, чем у соседей!')
 
-    # GAMES
 
 
+# GAMES
 def games(message):
     mupcup = types.InlineKeyboardMarkup()
     mupcup.add(types.InlineKeyboardButton('2 человека', callback_data='two'))
