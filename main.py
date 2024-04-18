@@ -253,7 +253,13 @@ def shashlik(message, k):
                          reply_markup=mupcup)
     elif k == 4:
         bot.send_message(message.chat.id, 'Это конец, моя маковая росинка! До встречи в моей шашлычной, пусть все твои '
-                                          'шашлыки будут вкуснее, чем у соседей!')
+                                          'шашлыки будут вкуснее, чем у соседей!',
+                         reply_markup=menu(message))
+
+
+def end_of_quiz():
+    mupcup = types.InlineKeyboardMarkup()
+    mupcup.add(types.InlineKeyboardButton('К начальному меню', callback_data='return no message'))
 
 
 # GAMES
