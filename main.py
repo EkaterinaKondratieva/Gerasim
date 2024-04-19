@@ -11,7 +11,8 @@ morph = pymorphy2.MorphAnalyzer()
 about_user = []
 about_seed = []
 BASE_URL = 'https://api.openweathermap.org/data/2.5/forecast?'
-API_KEY = 'a7cd0d9a75754013bea6553cc27adc54'
+API_KEY_WEATHER = 'a7cd0d9a75754013bea6553cc27adc54'
+API_KEY_MAP = "40d1649f-0493-4b70-98ba-98533de7710b"
 
 
 @bot.message_handler(commands=['start'])
@@ -39,6 +40,25 @@ def on_click(message):
         games(message)
     elif message.text.lower() == 'к начальному меню':
         menu(message)
+    elif message.text.lower() == 'посмотреть советы':
+        answer(message)
+    elif message.text.lower() == 'вернуться к списку':
+        only_buttons(message)
+    elif requests.get(
+            f"http://geocode-maps.yandex.ru/1.x/?apikey=40d1649f-0493-4b70-98ba-98533de7710b&geocode={message.text}&format=json"):
+        json_response = requests.get(
+            f"http://geocode-maps.yandex.ru/1.x/?apikey=40d1649f-0493-4b70-98ba-98533de7710b&geocode={message.text}&format=json").json()
+        toponym = json_response["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]
+        toponym_address = toponym["metaDataProperty"]["GeocoderMetaData"]["text"]
+        toponym_coodrinates = toponym["Point"]["pos"].split()
+        latitude = toponym_coodrinates[1]
+        longitude = toponym_coodrinates[0]
+        con = sqlite3.connect('bd.sql')
+        cur = con.cursor()
+        cur.execute('''INSERT INTO user (id, addres, latitude, longitude) VALUES (?, ?, ?, ?)''',
+                    (message.from_user.id, toponym_address, latitude, longitude))
+        con.commit()
+        answer_weather(message, latitude, longitude)
 
 
 def menu(message):
@@ -74,17 +94,24 @@ def callback_message(callback):
         about_seed.append(callback.data)
         about_seed.append(sort_of_seed)
         about_seed.append(best_temp)
-        marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
-        marcup.row(types.KeyboardButton("Отправить местоположение📍", request_location=True),
-                   types.KeyboardButton('Посмотреть советы'))
+        adresses_user = list(set(cur.execute('''SELECT addres FROM user WHERE id = ?''',
+                                    (callback.message.chat.id,)).fetchall()))
+        marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+        if adresses_user == []:
+            text = 'Дружок, чтобы моя помощь была максимальной, мне нужно узнать твой адрес'
+        else:
+            text = 'Ты уже пользовался моей помощью и у меня есть варианты, где ты мог бывать. \n' \
+                   'Но ты можешь отправить новый адрес'
+            for adr in adresses_user:
+                marcup.add(types.KeyboardButton(adr[0]))
+
+        marcup.row(types.KeyboardButton('Посмотреть советы'))
         marcup.row(types.KeyboardButton('Вернуться к списку'), types.KeyboardButton('К начальному меню'))
-        bot.send_message(callback.message.chat.id,
-                         'Дружок, чтобы моя помощь была максимальной, мне нужно узнать твою геолокацию',
-                         reply_markup=marcup)
-        bot.register_next_step_handler(callback.message, help_nura)
+        bot.send_message(callback.message.chat.id, text, reply_markup=marcup)
     elif callback.data == 'return_to_games':
         bot.send_message(callback.message.chat.id, 'С возвращением', reply_markup=create_buttons_for_game())
     elif callback.data == 'two' or callback.data == 'three and more' or callback.data == 'big company':
+        n = 2
         if callback.data == 'two':
             n = 2
         elif callback.data == 'three and more':
@@ -158,43 +185,36 @@ def start_nura(message):
                      reply_markup=create_buttons_for_nura())
 
 
-def help_nura(message):
-    if message.text == 'Посмотреть советы':
-        answer(message)
-    elif message.text == 'Вернуться к списку':
-        only_buttons(message)
-    elif message.text == 'К начальному меню':
-        menu(message)
-    else:
-        lat = message.location.latitude
-        lon = message.location.longitude
-        url = BASE_URL + 'lat=' + str(lat) + '&lon=' + str(lon) + '&appid=' + API_KEY + '&units=metric' + '&cnt=5'
-        response = requests.get(url).json()
-        now_temp = 0
-        ok = True
-        for i in range(5):
-            if response['list'][i]['main']['temp'] > 15:
-                now_temp += response['list'][i]['main']['temp']
-            else:
-                ok = False
-                break
-        seed = morph.parse(about_seed[1].lower())[0].inflect({"accs"}).word
-        if ok:
-            now_temp /= 5
-            if about_seed[-1][0] <= now_temp <= about_seed[-1][-1]:
-                bot.send_message(message.chat.id,
-                                 f'<b>{now_temp} - хорошая погода, чтобы посадить {seed}</b>', parse_mode='html')
-            else:
-                bot.send_message(message.chat.id, f'<b>Средняя температура на неделе - {now_temp}, недостаточно тепло.'
-                                                  f'Нужно подождать, чтобы посадить {seed}</b>', parse_mode='html')
+def answer_weather(message, latitude, longtitude):
+    lat = latitude
+    lon = longtitude
+    url = BASE_URL + 'lat=' + str(lat) + '&lon=' + str(
+        lon) + '&appid=' + API_KEY_WEATHER + '&units=metric' + '&cnt=5'
+    response = requests.get(url).json()
+    now_temp = 0
+    ok = True
+    for i in range(5):
+        if response['list'][i]['main']['temp'] > 15:
+            now_temp += response['list'][i]['main']['temp']
         else:
-            bot.send_message(message.chat.id, f'<b>На неделе ожидается низкая температура,'
-                                              f' нужно подождать, чтобы посадить {seed}</b>', parse_mode='html')
-        answer(message)
+            ok = False
+            break
+    seed = morph.parse(about_seed[1].lower())[0].inflect({"accs"}).word
+    answer(message)
+    if ok:
+        now_temp /= 5
+        if about_seed[-1][0] <= now_temp <= about_seed[-1][-1]:
+            bot.send_message(message.chat.id,
+                             f'<b>{now_temp} - хорошая погода, чтобы посадить {seed}</b>', parse_mode='html')
+        else:
+            bot.send_message(message.chat.id, f'<b>Средняя температура на неделе - {now_temp}, недостаточно тепло.'
+                                              f'Нужно подождать, чтобы посадить {seed}</b>', parse_mode='html')
+    else:
+        bot.send_message(message.chat.id, f'<b>На неделе ожидается низкая температура,'
+                                          f' нужно подождать, чтобы посадить {seed}</b>', parse_mode='html')
 
 
 ##ASHOT
-@bot.message_handler(commands=['ashot'])
 def greeting(message):
     mupcup = types.InlineKeyboardMarkup()
     mupcup.add(types.InlineKeyboardButton('Поехали', callback_data='lets go'))
