@@ -96,17 +96,11 @@ def callback_message(callback):
         marcup.add(types.InlineKeyboardButton('Вернуться за помощью', callback_data='return_to_games'))
         con = sqlite3.connect('bd.sql')
         cur = con.cursor()
-        games_in_bd = cur.execute('''SELECT Game FROM Games WHERE number_of_people = ?''', (n,)).fetchall()
+        games_in_bd = cur.execute('''SELECT Game, link, emoji FROM Games WHERE number_of_people = ?''', (n,)).fetchall()
         text = 'Вот в такие игры вы можете поиграть:'
-        if n == 2:
-            emoji = '⚽'
-        elif n == 3:
-            emoji = '🏀'
-        elif n == 7:
-            emoji = '🏐'
         for i in range(len(games_in_bd)):
-            text += f'\n{emoji} {games_in_bd[i][0]}'
-        bot.send_message(callback.message.chat.id, text, reply_markup=marcup)
+            text += f'\n{games_in_bd[i][2]} {games_in_bd[i][0]} {games_in_bd[i][1]}'
+        bot.send_message(callback.message.chat.id, text, reply_markup=marcup, parse_mode='html')
     elif callback.data == 'lets go':
         k = 0
         shashlik(callback.message, k)
