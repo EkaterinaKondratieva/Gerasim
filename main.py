@@ -166,7 +166,7 @@ def only_buttons(message):
 
 
 def answer(message):
-    bot.send_message(message.chat.id, 'Вот несколько рекомендаций для посадки:')
+    bot.send_message(message.chat.id, 'Вот несколько рекомендаций для посадки:', reply_markup=types.ReplyKeyboardRemove())
     bot.send_photo(message.chat.id, photo=open(f'vegetables/{about_seed[0]}.jpeg', 'rb'))
     mupcup = types.InlineKeyboardMarkup()
     for i in range(len(SEEDS[about_seed[0]][1])):
