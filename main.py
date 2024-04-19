@@ -17,7 +17,7 @@ API_KEY_MAP = "40d1649f-0493-4b70-98ba-98533de7710b"
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.send_photo(message.chat.id, photo=open(f'gerasim.jpeg', 'rb'))
+    bot.send_photo(message.chat.id, photo=open(f'photoes/gerasim.jpeg', 'rb'))
     marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
     marcup.add(types.KeyboardButton('В гостях у Бабы Нюры'))
     marcup.add(types.KeyboardButton('В шашлычной у Ашота'))
@@ -178,7 +178,7 @@ def answer(message):
 
 
 def start_nura(message):
-    bot.send_animation(message.chat.id, open('video/ogorod.mp4', 'rb'), reply_markup=types.ReplyKeyboardRemove())
+    bot.send_animation(message.chat.id, open('photoes/ogorod.mp4', 'rb'), reply_markup=types.ReplyKeyboardRemove())
     bot.send_message(message.chat.id, 'Привет, внучок! \n'
                                       'Меня зовут Баба Нюра и я знаю все о помидорках и клубнике!\n'
                                       'Если тебе нужна моя помощь, то просто выбирай нужную культуру',
@@ -219,7 +219,7 @@ def greeting(message):
     mupcup = types.InlineKeyboardMarkup()
     mupcup.add(types.InlineKeyboardButton('Поехали', callback_data='lets go'))
     mupcup.add(types.InlineKeyboardButton('К начальному меню', callback_data='return'))
-    bot.send_animation(message.chat.id, open('video/meat.mp4', 'rb'), reply_markup=types.ReplyKeyboardRemove())
+    bot.send_animation(message.chat.id, open('photoes/meat.mp4', 'rb'), reply_markup=types.ReplyKeyboardRemove())
     bot.send_message(message.chat.id, 'Вай, кого я вижу! \n'
                                       'Мой сладкий пирожок захотел познать искусство'
                                       ' приготовления идеального шашлыка? Давай посмотрим, сможешь ли ты создать такой'
@@ -309,7 +309,7 @@ def games(message):
     mupcup.add(types.InlineKeyboardButton('3-6 человек', callback_data='three and more'))
     mupcup.add(types.InlineKeyboardButton('Большая компания', callback_data='big company'))
     mupcup.add(types.InlineKeyboardButton('К начальному меню', callback_data='return'))
-    bot.send_animation(message.chat.id, open('video/game.mp4', 'rb'), reply_markup=types.ReplyKeyboardRemove())
+    bot.send_animation(message.chat.id, open('photoes/game.mp4', 'rb'), reply_markup=types.ReplyKeyboardRemove())
     bot.send_message(message.chat.id, 'Привет👋\n'
                                       'Этот раздел поможет тебе, если дни на даче проходят очень скучно\n'
                                       'Выбирай количество людей в компании и узнай, чем скоротать время',
