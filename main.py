@@ -98,7 +98,8 @@ def callback_message(callback):
                                     (callback.message.chat.id,)).fetchall()))
         marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
         if adresses_user == []:
-            text = 'Дружок, чтобы моя помощь была максимальной, мне нужно узнать твой адрес'
+            text = 'Внучок, чтобы моя помощь была максимальной, мне нужна твоя локация (Город, улица), например: ' \
+                   'Санкт-Петербург, Ленинский проспект'
         else:
             text = 'Ты уже пользовался моей помощью и у меня есть варианты, где ты мог бывать. \n' \
                    'Но ты можешь отправить новый адрес'
