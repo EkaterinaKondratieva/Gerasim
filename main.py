@@ -179,7 +179,7 @@ def answer(message):
 
 
 def start_nura(message):
-    bot.send_animation(message.chat.id, open('photoes/ogorod.mp4', 'rb'), reply_markup=types.ReplyKeyboardRemove())
+    bot.send_photo(message.chat.id, photo=open(f'photoes/nura.jpeg', 'rb'), reply_markup=types.ReplyKeyboardRemove())
     bot.send_message(message.chat.id, 'Привет, внучок! \n'
                                       'Меня зовут Баба Нюра и я знаю все о помидорках и клубнике!\n'
                                       'Если тебе нужна моя помощь, то просто выбирай нужную культуру',
@@ -220,7 +220,7 @@ def greeting(message):
     mupcup = types.InlineKeyboardMarkup()
     mupcup.add(types.InlineKeyboardButton('Поехали', callback_data='lets go'))
     mupcup.add(types.InlineKeyboardButton('К начальному меню', callback_data='return'))
-    bot.send_animation(message.chat.id, open('photoes/meat.mp4', 'rb'), reply_markup=types.ReplyKeyboardRemove())
+    bot.send_photo(message.chat.id, photo=open(f'photoes/ashot.jpeg', 'rb'), reply_markup=types.ReplyKeyboardRemove())
     bot.send_message(message.chat.id, 'Вай, кого я вижу! \n'
                                       'Мой сладкий пирожок захотел познать искусство'
                                       ' приготовления идеального шашлыка? Давай посмотрим, сможешь ли ты создать такой'
