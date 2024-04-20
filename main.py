@@ -94,7 +94,7 @@ def callback_message(callback):
         about_seed.append(sort_of_seed)
         about_seed.append(best_temp)
         adresses_user = list(set(cur.execute('''SELECT addres FROM user WHERE id = ?''',
-                                    (callback.message.chat.id,)).fetchall()))
+                                             (callback.message.chat.id,)).fetchall()))
         marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
         if adresses_user == []:
             text = 'Внучок, чтобы моя помощь была максимальной, мне нужна твоя локация (Город, улица), например: ' \
@@ -166,7 +166,8 @@ def only_buttons(message):
 
 
 def answer(message):
-    bot.send_message(message.chat.id, 'Вот несколько рекомендаций для посадки:', reply_markup=types.ReplyKeyboardRemove())
+    bot.send_message(message.chat.id, 'Вот несколько рекомендаций для посадки:',
+                     reply_markup=types.ReplyKeyboardRemove())
     bot.send_photo(message.chat.id, photo=open(f'vegetables/{about_seed[0]}.jpeg', 'rb'))
     mupcup = types.InlineKeyboardMarkup()
     con = sqlite3.connect('bd.sql')
@@ -300,12 +301,19 @@ def shashlik(message, k):
                       ['Никакого, он должен быть прозрачным', 'Красного', 'Жёлтого'],
                       None, 'quiz', None, 0, 'В мясном соке не должно быть крови, а жёлтого цвета разрешается быть'
                                              'только цветам на поляне шашлычников!')
-        bot.send_message(message.chat.id, 'Это конец, моя маковая росинка! До встречи в моей шашлычной, пусть все твои '
-                                          'шашлыки будут вкуснее, чем у соседей!',
-                         reply_markup=menu(message))
+        bot.send_message(message.chat.id, 'Можешь вернуться в меню, кнопки уже наготове!', reply_markup=back_menu(message))
 
 
-# GAMES
+def back_menu(message):
+    marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
+    marcup.add(types.KeyboardButton('В гостях у Бабы Нюры'))
+    marcup.add(types.KeyboardButton('В шашлычной у Ашота'))
+    marcup.add(types.KeyboardButton('Игры на выживание'))
+    bot.send_message(message.chat.id, 'Это конец, моя маковая росинка! До встречи в моей шашлычной, пусть все твои '
+                                          'шашлыки будут вкуснее, чем у соседей!', reply_markup=marcup)
+    # GAMES
+
+
 def games(message):
     mupcup = types.InlineKeyboardMarkup()
     mupcup.add(types.InlineKeyboardButton('2 человека', callback_data='two'))
