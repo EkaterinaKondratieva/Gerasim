@@ -94,7 +94,7 @@ def callback_message(callback):
         about_seed.append(sort_of_seed)
         about_seed.append(best_temp)
         adresses_user = list(set(cur.execute('''SELECT addres FROM user WHERE id = ?''',
-                                    (callback.message.chat.id,)).fetchall()))
+                                             (callback.message.chat.id,)).fetchall()))
         marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
         if adresses_user == []:
             text = 'Внучок, чтобы моя помощь была максимальной, мне нужна твоя локация (Город, улица), например: ' \
@@ -166,7 +166,8 @@ def only_buttons(message):
 
 
 def answer(message):
-    bot.send_message(message.chat.id, 'Вот несколько рекомендаций для посадки:', reply_markup=types.ReplyKeyboardRemove())
+    bot.send_message(message.chat.id, 'Вот несколько рекомендаций для посадки:',
+                     reply_markup=types.ReplyKeyboardRemove())
     bot.send_photo(message.chat.id, photo=open(f'vegetables/{about_seed[0]}.jpeg', 'rb'))
     mupcup = types.InlineKeyboardMarkup()
     con = sqlite3.connect('bd.sql')
@@ -192,29 +193,40 @@ def answer_weather(message, latitude, longtitude):
     lat = latitude
     lon = longtitude
     url = BASE_URL + 'lat=' + str(lat) + '&lon=' + str(
-        lon) + '&appid=' + API_KEY_WEATHER + '&units=metric' + '&cnt=5'
+        lon) + '&appid=' + API_KEY_WEATHER + '&units=metric'
     response = requests.get(url).json()
     now_temp = 0
+    cnt = len((response['list']))
     ok = True
-    for i in range(5):
-        if response['list'][i]['main']['temp'] > 15:
+    for i in range(cnt):
+        if about_seed[2][0] < response['list'][i]['main']['temp'] < about_seed[2][1]:
             now_temp += response['list'][i]['main']['temp']
-        else:
-            ok = False
+        elif response['list'][i]['main']['temp'] > about_seed[2][1]:
+            ok = 'hot'
+            break
+        elif response['list'][i]['main']['temp'] < about_seed[2][0]:
+            ok = 'cold'
             break
     seed = morph.parse(about_seed[1].lower())[0].inflect({"accs"}).word
     answer(message)
-    if ok:
-        now_temp /= 5
+    if ok == True:
+        now_temp /= cnt
         if about_seed[-1][0] <= now_temp <= about_seed[-1][-1]:
             bot.send_message(message.chat.id,
-                             f'<b>{now_temp} - хорошая погода, чтобы посадить {seed}</b>', parse_mode='html')
+                             f'☀️<b>{now_temp} - хорошая погода, чтобы посадить {seed}</b>', parse_mode='html')
         else:
             bot.send_message(message.chat.id, f'<b>Средняя температура на неделе - {now_temp}, недостаточно тепло.'
                                               f'Нужно подождать, чтобы посадить {seed}</b>', parse_mode='html')
-    else:
-        bot.send_message(message.chat.id, f'<b>На неделе ожидается низкая температура,'
-                                          f' нужно подождать, чтобы посадить {seed}</b>', parse_mode='html')
+    elif ok == 'cold':
+        data = response['list'][i]['dt_txt'].split()[0].split('-')
+        bot.send_message(message.chat.id,
+                         f'❄️<b>{data[2]}.{data[1]} ожидается низкая температура - {response["list"][i]["main"]["temp"]}.'
+                         f' Нужно подождать, чтобы посадить {seed}</b>', parse_mode='html')
+    elif ok == 'hot':
+        data = response['list'][i]['dt_txt'].split()[0].split('-')
+        bot.send_message(message.chat.id,
+                         f'🔥️<b>{data[2]}.{data[1]} ожидается очень высокая температура - {response["list"]["main"]["temp"]}.'
+                         f' Нужно подождать, чтобы посадить {seed}</b>', parse_mode='html')
 
 
 ##ASHOT
