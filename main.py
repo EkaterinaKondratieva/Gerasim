@@ -8,7 +8,6 @@ from seeds import SEEDS
 
 bot = telebot.TeleBot('7190036484:AAG1KC_QhMtZLDPopV3gW6ELKpvFlhrcvGo')
 morph = pymorphy2.MorphAnalyzer()
-about_user = []
 about_seed = []
 BASE_URL = 'https://api.openweathermap.org/data/2.5/forecast?'
 API_KEY_WEATHER = 'a7cd0d9a75754013bea6553cc27adc54'
@@ -86,7 +85,7 @@ def callback_message(callback):
     elif callback.data in ['tomatoes', 'cucumbers', 'peppers', 'zucchini', 'carrot', 'strawberry']:
         con = sqlite3.connect('bd.sql')
         cur = con.cursor()
-        sort_of_seed = SEEDS[callback.data][0]
+        sort_of_seed = SEEDS[callback.data]
         about_seed_temp = cur.execute('''SELECT Information FROM Seeds WHERE Name = ?''', (sort_of_seed,)).fetchone()[
             0].split('-')
         best_temp = [int(about_seed_temp[0]), int(about_seed_temp[-1])]
@@ -170,9 +169,12 @@ def answer(message):
     bot.send_message(message.chat.id, 'Вот несколько рекомендаций для посадки:', reply_markup=types.ReplyKeyboardRemove())
     bot.send_photo(message.chat.id, photo=open(f'vegetables/{about_seed[0]}.jpeg', 'rb'))
     mupcup = types.InlineKeyboardMarkup()
-    for i in range(len(SEEDS[about_seed[0]][1])):
+    con = sqlite3.connect('bd.sql')
+    cur = con.cursor()
+    links_for_plant = cur.execute('''SELECT name, link FROM links WHERE plant = ?''', (about_seed[1],)).fetchall()
+    for i in range(len(links_for_plant)):
         mupcup.add(
-            types.InlineKeyboardButton(f'{SEEDS[about_seed[0]][1][i][0]}', url=SEEDS[about_seed[0]][1][i][1]))
+            types.InlineKeyboardButton(f'{links_for_plant[i][0]}', url=links_for_plant[i][1]))
     mupcup.add(types.InlineKeyboardButton('К начальному меню', callback_data='return'))
     mupcup.add(types.InlineKeyboardButton('Вернуться к списку', callback_data='return_to_list'))
     bot.send_message(message.chat.id, 'А это мои лучшие семена)', reply_markup=mupcup)
