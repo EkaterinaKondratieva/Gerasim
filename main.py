@@ -312,7 +312,7 @@ def games(message):
     mupcup.add(types.InlineKeyboardButton('3-6 человек', callback_data='three and more'))
     mupcup.add(types.InlineKeyboardButton('Большая компания', callback_data='big company'))
     mupcup.add(types.InlineKeyboardButton('К начальному меню', callback_data='return'))
-    bot.send_animation(message.chat.id, open('photoes/game.mp4', 'rb'), reply_markup=types.ReplyKeyboardRemove())
+    bot.send_photo(message.chat.id, open('photoes/grigory.jpeg', 'rb'), reply_markup=types.ReplyKeyboardRemove())
     bot.send_message(message.chat.id, 'Привет👋\n'
                                       'Этот раздел поможет тебе, если дни на даче проходят очень скучно\n'
                                       'Выбирай количество людей в компании и узнай, чем скоротать время',
