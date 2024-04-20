@@ -8,7 +8,6 @@ from seeds import SEEDS
 
 bot = telebot.TeleBot('7190036484:AAG1KC_QhMtZLDPopV3gW6ELKpvFlhrcvGo')
 morph = pymorphy2.MorphAnalyzer()
-about_user = []
 about_seed = []
 BASE_URL = 'https://api.openweathermap.org/data/2.5/forecast?'
 API_KEY_WEATHER = 'a7cd0d9a75754013bea6553cc27adc54'
@@ -17,7 +16,7 @@ API_KEY_MAP = "40d1649f-0493-4b70-98ba-98533de7710b"
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.send_photo(message.chat.id, photo=open(f'gerasim.jpeg', 'rb'))
+    bot.send_photo(message.chat.id, photo=open(f'photoes/gerasim.jpeg', 'rb'))
     marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
     marcup.add(types.KeyboardButton('В гостях у Бабы Нюры'))
     marcup.add(types.KeyboardButton('В шашлычной у Ашота'))
@@ -86,7 +85,7 @@ def callback_message(callback):
     elif callback.data in ['tomatoes', 'cucumbers', 'peppers', 'zucchini', 'carrot', 'strawberry']:
         con = sqlite3.connect('bd.sql')
         cur = con.cursor()
-        sort_of_seed = SEEDS[callback.data][0]
+        sort_of_seed = SEEDS[callback.data]
         about_seed_temp = cur.execute('''SELECT Information FROM Seeds WHERE Name = ?''', (sort_of_seed,)).fetchone()[
             0].split('-')
         best_temp = [int(about_seed_temp[0]), int(about_seed_temp[-1])]
@@ -98,7 +97,8 @@ def callback_message(callback):
                                     (callback.message.chat.id,)).fetchall()))
         marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
         if adresses_user == []:
-            text = 'Дружок, чтобы моя помощь была максимальной, мне нужно узнать твой адрес'
+            text = 'Внучок, чтобы моя помощь была максимальной, мне нужна твоя локация (Город, улица), например: ' \
+                   'Санкт-Петербург, Ленинский проспект'
         else:
             text = 'Ты уже пользовался моей помощью и у меня есть варианты, где ты мог бывать. \n' \
                    'Но ты можешь отправить новый адрес'
@@ -166,19 +166,22 @@ def only_buttons(message):
 
 
 def answer(message):
-    bot.send_message(message.chat.id, 'Вот несколько рекомендаций для посадки:')
+    bot.send_message(message.chat.id, 'Вот несколько рекомендаций для посадки:', reply_markup=types.ReplyKeyboardRemove())
     bot.send_photo(message.chat.id, photo=open(f'vegetables/{about_seed[0]}.jpeg', 'rb'))
     mupcup = types.InlineKeyboardMarkup()
-    for i in range(len(SEEDS[about_seed[0]][1])):
+    con = sqlite3.connect('bd.sql')
+    cur = con.cursor()
+    links_for_plant = cur.execute('''SELECT name, link FROM links WHERE plant = ?''', (about_seed[1],)).fetchall()
+    for i in range(len(links_for_plant)):
         mupcup.add(
-            types.InlineKeyboardButton(f'{SEEDS[about_seed[0]][1][i][0]}', url=SEEDS[about_seed[0]][1][i][1]))
+            types.InlineKeyboardButton(f'{links_for_plant[i][0]}', url=links_for_plant[i][1]))
     mupcup.add(types.InlineKeyboardButton('К начальному меню', callback_data='return'))
     mupcup.add(types.InlineKeyboardButton('Вернуться к списку', callback_data='return_to_list'))
     bot.send_message(message.chat.id, 'А это мои лучшие семена)', reply_markup=mupcup)
 
 
 def start_nura(message):
-    bot.send_animation(message.chat.id, open('video/ogorod.mp4', 'rb'), reply_markup=types.ReplyKeyboardRemove())
+    bot.send_photo(message.chat.id, photo=open(f'photoes/nura.jpeg', 'rb'), reply_markup=types.ReplyKeyboardRemove())
     bot.send_message(message.chat.id, 'Привет, внучок! \n'
                                       'Меня зовут Баба Нюра и я знаю все о помидорках и клубнике!\n'
                                       'Если тебе нужна моя помощь, то просто выбирай нужную культуру',
@@ -219,7 +222,7 @@ def greeting(message):
     mupcup = types.InlineKeyboardMarkup()
     mupcup.add(types.InlineKeyboardButton('Поехали', callback_data='lets go'))
     mupcup.add(types.InlineKeyboardButton('К начальному меню', callback_data='return'))
-    bot.send_animation(message.chat.id, open('video/meat.mp4', 'rb'), reply_markup=types.ReplyKeyboardRemove())
+    bot.send_photo(message.chat.id, photo=open(f'photoes/ashot.jpeg', 'rb'), reply_markup=types.ReplyKeyboardRemove())
     bot.send_message(message.chat.id, 'Вай, кого я вижу! \n'
                                       'Мой сладкий пирожок захотел познать искусство'
                                       ' приготовления идеального шашлыка? Давай посмотрим, сможешь ли ты создать такой'
@@ -309,7 +312,7 @@ def games(message):
     mupcup.add(types.InlineKeyboardButton('3-6 человек', callback_data='three and more'))
     mupcup.add(types.InlineKeyboardButton('Большая компания', callback_data='big company'))
     mupcup.add(types.InlineKeyboardButton('К начальному меню', callback_data='return'))
-    bot.send_animation(message.chat.id, open('video/game.mp4', 'rb'), reply_markup=types.ReplyKeyboardRemove())
+    bot.send_photo(message.chat.id, open('photoes/grigory.jpeg', 'rb'), reply_markup=types.ReplyKeyboardRemove())
     bot.send_message(message.chat.id, 'Привет👋\n'
                                       'Этот раздел поможет тебе, если дни на даче проходят очень скучно\n'
                                       'Выбирай количество людей в компании и узнай, чем скоротать время',
