@@ -14,7 +14,7 @@ API_KEY_WEATHER = 'a7cd0d9a75754013bea6553cc27adc54'
 API_KEY_MAP = "40d1649f-0493-4b70-98ba-98533de7710b"
 
 
-@bot.message_handler(commands=['start'])
+@bot.message_handler(commands=['start', 'help'])
 def start(message):
     bot.send_photo(message.chat.id, photo=open(f'photoes/gerasim.jpeg', 'rb'))
     marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
