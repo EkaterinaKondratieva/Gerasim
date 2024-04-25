@@ -38,7 +38,7 @@ def on_click(message):
     elif message.text.lower() == 'игры на выживание':
         games(message)
     elif message.text.lower() == 'к начальному меню':
-        menu(message)
+        menu(message, 'С возвращением')
     elif message.text.lower() == 'посмотреть советы':
         answer(message)
     elif message.text.lower() == 'вернуться к списку':
@@ -60,12 +60,12 @@ def on_click(message):
         answer_weather(message, latitude, longitude)
 
 
-def menu(message):
+def menu(message, text):
     marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
     marcup.add(types.KeyboardButton('В гостях у Бабы Нюры'))
     marcup.add(types.KeyboardButton('В шашлычной у Ашота'))
     marcup.add(types.KeyboardButton('Игры на выживание'))
-    bot.send_message(message.chat.id, 'С возвращением', reply_markup=marcup)
+    bot.send_message(message.chat.id, text, reply_markup=marcup)
 
 
 @bot.callback_query_handler(func=lambda callback: True)
@@ -312,16 +312,10 @@ def shashlik(message, k):
                       ['Никакого, он должен быть прозрачным', 'Красного', 'Жёлтого'],
                       None, 'quiz', None, 0, 'В мясном соке не должно быть крови, а жёлтого цвета разрешается быть'
                                              'только цветам на поляне шашлычников!')
-        bot.send_message(message.chat.id, 'Можешь вернуться в меню, кнопки уже наготове!', reply_markup=back_menu(message))
+        text = 'Это конец, моя маковая росинка! До встречи в моей шашлычной, пусть все твои шашлыки будут вкуснее, чем у соседей!'
+        bot.send_message(message.chat.id, 'Можешь вернуться в меню, кнопки уже наготове!',
+                         reply_markup=menu(message, text))
 
-
-def back_menu(message):
-    marcup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
-    marcup.add(types.KeyboardButton('В гостях у Бабы Нюры'))
-    marcup.add(types.KeyboardButton('В шашлычной у Ашота'))
-    marcup.add(types.KeyboardButton('Игры на выживание'))
-    bot.send_message(message.chat.id, 'Это конец, моя маковая росинка! До встречи в моей шашлычной, пусть все твои '
-                                          'шашлыки будут вкуснее, чем у соседей!', reply_markup=marcup)
     # GAMES
 
 
