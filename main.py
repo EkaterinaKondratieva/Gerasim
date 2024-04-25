@@ -312,8 +312,7 @@ def shashlik(message, k):
                       ['Никакого, он должен быть прозрачным', 'Красного', 'Жёлтого'],
                       None, 'quiz', None, 0, 'В мясном соке не должно быть крови, а жёлтого цвета разрешается быть'
                                              'только цветам на поляне шашлычников!')
-        bot.send_message(message.chat.id, 'Можешь вернуться в меню, кнопки уже наготове!',
-                         reply_markup=back_menu(message))
+        bot.send_message(message.chat.id, 'Можешь вернуться в меню, кнопки уже наготове!', reply_markup=back_menu(message))
 
 
 def back_menu(message):
@@ -322,7 +321,7 @@ def back_menu(message):
     marcup.add(types.KeyboardButton('В шашлычной у Ашота'))
     marcup.add(types.KeyboardButton('Игры на выживание'))
     bot.send_message(message.chat.id, 'Это конец, моя маковая росинка! До встречи в моей шашлычной, пусть все твои '
-                                      'шашлыки будут вкуснее, чем у соседей!', reply_markup=marcup)
+                                          'шашлыки будут вкуснее, чем у соседей!', reply_markup=marcup)
     # GAMES
 
 
